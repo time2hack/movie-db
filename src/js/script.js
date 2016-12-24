@@ -1,6 +1,36 @@
 var $ = require('jquery');
 var Auth = require('./auth')
+var Router = require('./router');
 
+
+var appRouter = new Router({
+  mountPoint: '#root',
+  indexRoute: 'index',
+  routes: {
+    login : {
+      path: 'login',
+      template: 'partials/login.html',
+      controller: function() {
+        loginPage();
+        console.log('login controller function loaded');
+      }
+    },
+    index : {
+      path: 'index',
+      template: 'partials/index.html',
+      controller: function() {
+        console.log('index controller function loaded');
+      }
+    },
+    add : {
+      path: 'add',
+      template: 'partials/add.html',
+      controller: function() {
+        console.log('add controller function loaded');
+      }
+    }
+  }
+})
 //Error box indexes
 var errorIndex = 0;
 
@@ -11,20 +41,20 @@ var login = function(type, data){
 
 //Redirect to some Page or URL
 var redirect = function(to) {
-  window.location = to;
+  appRouter.go(to)
 }
 
 //Redirect to Home
 var redirectToHome = function(user) {
   if(user){
-    redirect('index.html');
+    redirect('index');
   }
 }
 
 //Redirect to Login
 var redirectToLogin = function(user) {
   if(!user){
-    redirect('login.html');
+    redirect('login');
   }
 }
 
@@ -59,16 +89,15 @@ var authStateRouter = function(){
       redirectToHome(user);
     } else { //User is not on login page
       //Show and Hide the appropriate button in the Header
-      $('.logout-link').show();
+      $('.logout-link').show(function(){
+        $(this).css('display', 'block');
+      });
       $('.login-link').hide();
     }
   }
 }
 
-$(document).ready(function () {
-  //Initialize the Firebase App
-  Auth.init(authStateRouter);
-
+function loginPage() {
   //Logout Button
   $('.logout-link').on('click', function (e) {
     if( Auth.logout() ){
@@ -102,4 +131,9 @@ $(document).ready(function () {
     login('email', data)
       .then(redirectToHome)
   })
+}
+$(document).ready(function() {
+  //Initialize the Firebase App
+  Auth.init(authStateRouter);
+  appRouter.listen();
 })
