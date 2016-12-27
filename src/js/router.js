@@ -76,6 +76,8 @@ Router.prototype.render = function(name) {
       } else if( typeof enterResponse === 'string' ){
         _self.go(enterResponse);
       }
+    } else {
+      _self.fetch.call(_self, state.template, name.replace(/[#\/]/g, ''), _self.replace);
     }
     // if(typeof state.onEnter === 'function'){
     //   state.onEnter(_self.go)

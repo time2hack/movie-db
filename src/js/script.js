@@ -49,6 +49,11 @@ var appRouter = new Router({
         }
       },
       controller: require('./controllers/add')(Auth, redirect)
+    },
+    list : {
+      path: 'list',
+      template: 'partials/list.html',
+      controller: require('./controllers/list')(Auth, redirect)
     }
   }
 })
