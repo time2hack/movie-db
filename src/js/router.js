@@ -50,15 +50,50 @@ Router.prototype.go = function(path) {
   window.location.hash = path[0] === '/' ? path : '/' + path;
 }
 
+Router.prototype.replace = function(data, state) {
+  var _self = this;
+  console.log(state)
+  $(_self.mountPoint).empty().html(data);
+  _self.routes[state].controller();
+}
+
+Router.prototype.fetch = function(path, state, callback) {
+  var _self = this;
+  $.get(path, function(data){
+    callback.call(_self, data, state);
+  })
+}
+
 Router.prototype.render = function(name) {
   var _self = this;
   var state = _self.routes[name.replace(/[#\/]/g, '')];
   if( state ){
     console.log(name, state);
-    $.get(state.template, function(data){
-      $(_self.mountPoint).html(data);
-      state.controller();
-    })
+    if(typeof state.onEnter === 'function'){
+      var enterResponse = state.onEnter();
+      if( enterResponse === true ){
+        _self.fetch.call(_self, state.template, name.replace(/[#\/]/g, ''), _self.replace);
+      } else if( typeof enterResponse === 'string' ){
+        _self.go(enterResponse);
+      }
+    }
+    // if(typeof state.onEnter === 'function'){
+    //   state.onEnter(_self.go)
+    //     .then(function(status) {
+    //       console.log('Hello')
+    //       _self.fetch.call(_self, state.template, name.replace(/[#\/]/g, ''), _self.replace);
+    //       if( typeof status === 'function' ) {
+    //         status();
+    //       }
+    //     })
+    //     .catch(function(status) {
+    //       if( typeof status === 'function' ) {
+    //         status();
+    //       } else {
+    //         console.error(status)
+    //       }
+    //     })
+    // }
   } else {
     _self.render(_self.indexRoute);
   }
