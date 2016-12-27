@@ -32,7 +32,7 @@ module.exports = function(Auth, redirect) {
           directors: $('#directors').val().split(',').map(function(item) {
             return item.trim();
           }),
-          stars: $('#stars').val().split(',').map(function(item) {
+          actors: $('#actors').val().split(',').map(function(item) {
             return item.trim();
           }),
           imdbUrl: $('#imdbUrl').val(),
@@ -43,7 +43,7 @@ module.exports = function(Auth, redirect) {
       })
   }
 }
-//'{"movieName":"Iron Man","releaseYear":"May, 2008","generes":["Action","Adventure","Sci-Fi"],"duration":"126","directors":["Jon Favreau"],"stars":["Robert Downey Jr.","Gwyneth Paltrow","Terrence Howard","Jeff Bridges"],"imdbUrl":"http://www.imdb.com/title/tt0371746/"}'
+//'{"movieName":"Iron Man","releaseYear":"May, 2008","generes":["Action","Adventure","Sci-Fi"],"duration":"126","directors":["Jon Favreau"],"actors":["Robert Downey Jr.","Gwyneth Paltrow","Terrence Howard","Jeff Bridges"],"imdbUrl":"http://www.imdb.com/title/tt0371746/"}'
 /*
 Object.keys(movie).map(function(key) {
   if(typeof movie[key] === 'string'){
