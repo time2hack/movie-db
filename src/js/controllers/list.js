@@ -1,7 +1,7 @@
 var firebase = require('firebase');
 var $ = require('jquery');
 
-module.exports = function(Auth, redirect) {
+var ListController = function(Auth, redirect) {
   return function () {
     var userId = firebase.auth().currentUser.uid;
 
@@ -18,24 +18,24 @@ module.exports = function(Auth, redirect) {
 
     var renderSingleSnapshot = function(childSnapshot) {
       var movie = childSnapshot.val();
-      console.log(movie)
+
       var html = '';
-      html += '<li class="list-group-item movie"> \
-        <div>';
+
+      html += '<li class="list-group-item movie">';
+        html += '<div>';
         if( movie.imdbUrl === '' ){
           html += '<h5>'+  movie.movieName +'</h5>';
         } else {
           html += '<h5>'+ '<a href="'+movie.imdbUrl+'" target="_blank">'+movie.movieName+'</a>' +'</h5>';
-
         }
-        html += '<h6><b>Director: </b>'+movie.directors.join(', ')+'</h6>\
-          <small><b>Released in: </b>'+(movie.releaseYear)+'<br/>\
-          <b>Duration: </b>'+durationConvertor(movie.duration)+'<br/>\
-          <b>Actors: </b>';
-      html += (movie.actors || movie.stars).join(', ')
-                    +'</small>';
-      html += '</div>\
-              </li>';
+        html += '<h6><b>Director: </b>'+movie.directors.join(', ')+'</h6>';
+        html += '<small><b>Released in: </b>'+(movie.releaseYear)+'<br/>';
+        html += '<b>Duration: </b>'+durationConvertor(movie.duration)+'<br/>';
+        html += '<b>Actors: </b>';
+        html += (movie.actors || movie.stars).join(', ') + '</small>';
+        html += '</div>';
+      html += '</li>';
+
       markup += html;
     }
 
@@ -49,3 +49,9 @@ module.exports = function(Auth, redirect) {
     }
   }
 }
+
+ListController.toggleStar = function(movieUniqueId){
+  console.log(movieUniqueId);
+}
+
+module.exports = ListController;
