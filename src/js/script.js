@@ -13,7 +13,7 @@ var appRouter = new Router({
   routes: {
     login : {
       path: 'login',
-      template: 'partials/login.html',
+      templateUrl: 'partials/login.html',
       onEnter: function() {
         var user = Auth.checkLoggedInUser();
         if( !user && window.location.hash.match('/login') ){
@@ -26,7 +26,7 @@ var appRouter = new Router({
     },
     index : {
       path: 'index',
-      template: 'partials/index.html',
+      templateUrl: 'partials/index.html',
       onEnter: function() {
         var user = Auth.checkLoggedInUser();
         if( user && !window.location.hash.match('/login') ){
@@ -39,7 +39,7 @@ var appRouter = new Router({
     },
     add : {
       path: 'add',
-      template: 'partials/add.html',
+      templateUrl: 'partials/add.html',
       onEnter: function() {
         var user = Auth.checkLoggedInUser();
         if( user && !window.location.hash.match('/login') ){
@@ -52,7 +52,7 @@ var appRouter = new Router({
     },
     list : {
       path: 'list',
-      template: 'partials/list.html',
+      templateUrl: 'partials/list.html',
       controller: require('./controllers/list')(Auth, redirect)
     }
   }

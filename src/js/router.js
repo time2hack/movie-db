@@ -17,7 +17,8 @@ Router.prototype.add = function(route) {
   /**
    * route: {
    *   path: String,
-   *   template: path for ajax,
+   *   template: template string,
+   *   templateUrl: path for ajax,
    *   onEnter: function(),
    *   controller: function(),
    *   onLeave: function()
@@ -31,14 +32,14 @@ Router.prototype.listen = function() {
   if ( "onhashchange" in window.document.body ) {
     window.addEventListener('hashchange', function (e) {
       console.log(e);
-      _self.render(window.location.hash.replace(/[#\/]/g, ''));
+      _self.render(_self.getStateName(window.location.hash));
     }, false)
   } else {
     _self.fallback(window);
   }
 
   //Start with indexRoute
-  if(!_self.routes[window.location.hash.replace(/[#\/]/g, '')]){
+  if(!_self.routes[_self.getStateName(window.location.hash)]){
     _self.go(_self.indexRoute);
   } else {
     console.log('render')
@@ -48,6 +49,10 @@ Router.prototype.listen = function() {
 
 Router.prototype.go = function(path) {
   window.location.hash = path[0] === '/' ? path : '/' + path;
+}
+
+Router.prototype.getStateName = function(hash) {
+  return hash.replace(/[#\/]/g, '')
 }
 
 Router.prototype.replace = function(data, state) {
@@ -60,42 +65,42 @@ Router.prototype.replace = function(data, state) {
 Router.prototype.fetch = function(path, state, callback) {
   var _self = this;
   $.get(path, function(data){
+    _self.routes[state].template = data;
     callback.call(_self, data, state);
   })
 }
 
+Router.prototype.fetchAndReplace = function(stateName) {
+  var _self = this;
+  var state = _self.routes[stateName];
+
+  if( state.templateUrl ){
+    if( !state.template){
+      _self.fetch.call(_self, state.templateUrl, stateName, _self.replace);
+    } else {
+      _self.replace.call(_self, state.template, stateName);
+    }
+  } else {
+    _self.replace.call(_self, state.template, stateName);
+  }
+}
+
 Router.prototype.render = function(name) {
   var _self = this;
-  var state = _self.routes[name.replace(/[#\/]/g, '')];
+  var stateName = _self.getStateName(name);
+  var state = _self.routes[stateName];
   if( state ){
     console.log(name, state);
     if(typeof state.onEnter === 'function'){
       var enterResponse = state.onEnter();
       if( enterResponse === true ){
-        _self.fetch.call(_self, state.template, name.replace(/[#\/]/g, ''), _self.replace);
+        _self.fetchAndReplace.call(_self, stateName);
       } else if( typeof enterResponse === 'string' ){
         _self.go(enterResponse);
       }
     } else {
-      _self.fetch.call(_self, state.template, name.replace(/[#\/]/g, ''), _self.replace);
+      _self.fetchAndReplace.call(_self, stateName);
     }
-    // if(typeof state.onEnter === 'function'){
-    //   state.onEnter(_self.go)
-    //     .then(function(status) {
-    //       console.log('Hello')
-    //       _self.fetch.call(_self, state.template, name.replace(/[#\/]/g, ''), _self.replace);
-    //       if( typeof status === 'function' ) {
-    //         status();
-    //       }
-    //     })
-    //     .catch(function(status) {
-    //       if( typeof status === 'function' ) {
-    //         status();
-    //       } else {
-    //         console.error(status)
-    //       }
-    //     })
-    // }
   } else {
     _self.render(_self.indexRoute);
   }
