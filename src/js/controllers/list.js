@@ -18,6 +18,7 @@ var ListController = function(Auth, redirect) {
 
     var renderSingleSnapshot = function(childSnapshot) {
       var movie = childSnapshot.val();
+      console.log(childSnapshot.key, movie);
 
       var html = '';
 
@@ -26,7 +27,7 @@ var ListController = function(Auth, redirect) {
         if( movie.imdbUrl === '' ){
           html += '<h5>'+  movie.movieName +'</h5>';
         } else {
-          html += '<h5>'+ '<a href="'+movie.imdbUrl+'" target="_blank">'+movie.movieName+'</a>' +'</h5>';
+          html += '<h5>'+movie.movieName+' <a href="'+movie.imdbUrl+'" target="_blank"><i class="fa fa-imdb" aria-hidden="true"></i></a>' +'</h5>';
         }
         html += '<h6><b>Director: </b>'+movie.directors.join(', ')+'</h6>';
         html += '<small><b>Released in: </b>'+(movie.releaseYear)+'<br/>';

@@ -64,6 +64,13 @@ body {
   margin-top: 1.5rem;
 }
 
+#list .fa{
+  transition: all linear 0.2s;
+}
+#list .fa:hover{
+  transition: all linear 0.2s;
+  transform: scale(1.3);
+}
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 48em) {
   /* Remove the padding we set earlier */
