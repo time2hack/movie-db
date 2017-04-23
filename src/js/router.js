@@ -2,15 +2,56 @@ var $ = require('jquery');
 
 
 var Router = function(config) {
-  console.log(config)
-  this.routes = config.routes || {};
-  this.mountPoint = config.mountPoint || '#root';
-  this.indexRoute = config.indexRoute || 'index';
-  return this;
+  var _self = this;
+  _self.routes = {};
+  _self.patterns = [];
+  _self.patternMap = {};
+  _self.mountPoint = config.mountPoint || '#root';
+  _self.indexRoute = config.indexRoute || 'index';
+  _self.separator =  config.separator || '/';
+
+  //Enhance routes and prepare a flat array of patterns
+  Object.keys(config.routes).forEach(function(key) {
+    var route = _self.enhanceRoute(config.routes[key]);
+    _self.routes[key] = route;
+    _self.patterns.push(route.pattern);
+    _self.patternMap[route.pattern] = key;
+  })
+  console.log(_self.patterns, _self.routes)
+  return _self;
 }
 
 Router.prototype.setRedirect = function (func) {
   this.prototype.redirect = func;
+}
+
+Router.prototype.enhanceRoute = function (route) {
+  if(!route.path){
+    throw new Error('Route needs to have a path');
+  }
+
+  var path = route.path;
+  // Check for params
+  var params = path.match(/(:\w*)/g);
+  var parts = path.split(this.separator);
+  route.parts = parts;
+  route.depth = parts.length;
+  route.hasParams = params ? Boolean(params.length) : false;
+
+  route.pattern = path;
+  // Path has params
+  if( route.hasParams ) {
+    var positions = params.reduce(function(acc, param) {
+      var paramName = param.replace(':', '');
+      var index = parts.indexOf(param);
+      return acc[paramName] = index;
+    }, {});
+    route.positions = positions;
+    route.pattern = path.replace(/(:\w*)/g, '([\\w\\-]*)');
+  }
+
+  route.pattern = route.pattern.split(this.separator).join('\\'+this.separator);
+  return route;
 }
 
 Router.prototype.add = function(route) {
@@ -24,26 +65,26 @@ Router.prototype.add = function(route) {
    *   onLeave: function()
    * }
    */
-  this.routes[name] = route;
+  this.routes[route.name] = route;
 };
 
 Router.prototype.listen = function() {
   var _self = this
-  if ( "onhashchange" in window.document.body ) {
+  if ( 'onhashchange' in window.document.body ) {
     window.addEventListener('hashchange', function (e) {
       console.log(e);
-      _self.render(_self.getStateName(window.location.hash));
+      _self.render(_self.getStateName());
     }, false)
   } else {
     _self.fallback(window);
   }
 
+  var state = _self.getStateName();
   //Start with indexRoute
-  if(!_self.routes[_self.getStateName(window.location.hash)]){
+  if(!_self.routes[state]){
     _self.go(_self.indexRoute);
   } else {
-    console.log('render')
-    _self.render(window.location.hash);
+    _self.render(state);
   }
 }
 
@@ -52,7 +93,18 @@ Router.prototype.go = function(path) {
 }
 
 Router.prototype.getStateName = function(hash) {
-  return hash.replace(/[#\/]/g, '')
+  if(!hash) hash = window.location.hash;
+  var sanitizedHash = hash.replace(/[#]/g, '').replace(/^\//g, '');
+  var qualifyingPaths = this.patterns.filter(function(pattern) {
+    return !(hash.match(pattern) === null);
+  });
+  if( qualifyingPaths.length === 1 ) {
+    return this.patternMap[qualifyingPaths[0]];
+  } else {
+    //DO MORE CHECKS
+    //Very Rare situation for now
+  }
+  return this.indexRoute;
 }
 
 Router.prototype.replace = function(data, state) {
@@ -86,20 +138,20 @@ Router.prototype.fetchAndReplace = function(stateName) {
 }
 
 Router.prototype.render = function(name) {
+  if(!name) name = _self.getStateName(name);
+  console.log(name);
   var _self = this;
-  var stateName = _self.getStateName(name);
-  var state = _self.routes[stateName];
+  var state = _self.routes[name];
   if( state ){
-    console.log(name, state);
     if(typeof state.onEnter === 'function'){
       var enterResponse = state.onEnter();
       if( enterResponse === true ){
-        _self.fetchAndReplace.call(_self, stateName);
+        _self.fetchAndReplace.call(_self, name);
       } else if( typeof enterResponse === 'string' ){
         _self.go(enterResponse);
       }
     } else {
-      _self.fetchAndReplace.call(_self, stateName);
+      _self.fetchAndReplace.call(_self, name);
     }
   } else {
     _self.render(_self.indexRoute);
@@ -109,7 +161,7 @@ Router.prototype.render = function(name) {
 Router.prototype.fallback = function(window) {
   // https://developer.mozilla.org/en-US/docs/Web/Events/hashchange
   // exit if the browser implements that event
-  if ( "onhashchange" in window.document.body ) { return; }
+  if ( 'onhashchange' in window.document.body ) { return; }
 
   var location = window.location,
     oldURL = location.href,
@@ -121,10 +173,10 @@ Router.prototype.fallback = function(window) {
       newHash = location.hash;
 
     // if the hash has changed and a handler has been bound...
-    if ( newHash != oldHash && typeof window.onhashchange === "function" ) {
+    if ( newHash != oldHash && typeof window.onhashchange === 'function' ) {
       // execute the handler
       window.onhashchange({
-        type: "hashchange",
+        type: 'hashchange',
         oldURL: oldURL,
         newURL: newURL
       });

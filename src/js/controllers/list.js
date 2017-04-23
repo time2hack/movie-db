@@ -18,12 +18,10 @@ var ListController = function(Auth, redirect) {
 
     var renderSingleSnapshot = function(childSnapshot) {
       var movie = childSnapshot.val();
-      console.log(childSnapshot.key, movie);
-
       var html = '';
-
       html += '<li class="list-group-item movie">';
         html += '<div>';
+        html += '<a class="pull-right" href="#/edit/'+childSnapshot.key+'">Edit</a>';
         if( movie.imdbUrl === '' ){
           html += '<h5>'+  movie.movieName +'</h5>';
         } else {
