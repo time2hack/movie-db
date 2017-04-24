@@ -56,7 +56,7 @@ webpackJsonp([1,0],[
 	    },
 	    edit : {
 	      path: 'edit/:id',
-	      templateUrl: 'partials/add.html',
+	      templateUrl: 'partials/edit.html',
 	      onEnter: function() {
 	        var user = Auth.checkLoggedInUser();
 	        if( user && !window.location.hash.match('/login') ){
@@ -11652,7 +11652,84 @@ webpackJsonp([1,0],[
 
 /***/ }),
 /* 13 */
-12,
+/***/ (function(module, exports, __webpack_require__) {
+
+	var $ = __webpack_require__(1);
+	var firebase = __webpack_require__(3);
+	module.exports = function(Auth, redirect) {
+	  return function (params) {
+	    // Get a reference to the database service
+	    var database = firebase.database();
+	    var query = firebase.database().ref("movies/"+params.id);
+
+	    //Fire Query
+	    query.once("value").then(fillData)
+
+	    //Fill The data
+	    function fillData(snap) {
+	      var data = snap.val();
+	      console.log(data)
+	      $('#movieName').val(data.movieName);
+	      $('#releaseYear').val(data.releaseYear);
+	      $('#generes').val((data.generes || []).join(', '))
+	      $('#duration').val(data.duration);
+	      $('#directors').val((data.directors || []).join(', '))
+	      $('#actors').val((data.actors || []).join(', '))
+	      $('#imdbUrl').val(data.imdbUrl);
+	    }
+
+	    //Save function
+	    function saveMovie(movie) {
+	      var uid = firebase.auth().currentUser.uid;
+	      var postKey = params.id;
+	      console.log(params, postKey)
+	      var updates = {};
+	      updates['/movies/' + postKey] = movie;
+	      updates['/user-movies/' + uid + '/' + postKey] = movie;
+
+	      return database.ref().update(updates);
+	    }
+
+	    $(document)
+	      .off('click', '#save')
+	      .on('click', '#save', function(e) {
+	        var uid = firebase.auth().currentUser.uid;
+	        var movie = {
+	          movieName: $('#movieName').val(),
+	          releaseYear: $('#releaseYear').val(),
+	          generes: $('#generes').val().split(',').map(function(item) {
+	            return item.trim();
+	          }),
+	          duration: $('#duration').val(),
+	          directors: $('#directors').val().split(',').map(function(item) {
+	            return item.trim();
+	          }),
+	          actors: $('#actors').val().split(',').map(function(item) {
+	            return item.trim();
+	          }),
+	          imdbUrl: $('#imdbUrl').val(),
+	          uid: uid
+	        }
+	        var response = saveMovie(movie).then(function(){
+	          redirect('list');
+	        });
+	      })
+	  }
+	}
+	//'{"movieName":"Iron Man","releaseYear":"May, 2008","generes":["Action","Adventure","Sci-Fi"],"duration":"126","directors":["Jon Favreau"],"actors":["Robert Downey Jr.","Gwyneth Paltrow","Terrence Howard","Jeff Bridges"],"imdbUrl":"http://www.imdb.com/title/tt0371746/"}'
+	/*
+	Object.keys(movie).map(function(key) {
+	  if(typeof movie[key] === 'string'){
+	    document.querySelector('#'+key).setAttribute('value', movie[key])
+	  } else {
+	    document.querySelector('#'+key).setAttribute('value', movie[key].join(', '))
+	  }
+	  return key;
+	})
+	*/
+
+
+/***/ }),
 /* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -11843,6 +11920,8 @@ webpackJsonp([1,0],[
 	  _self.routes = {};
 	  _self.patterns = [];
 	  _self.patternMap = {};
+	  //This variable will be updated on every hashchange
+	  _self.params = null;
 	  _self.mountPoint = config.mountPoint || '#root';
 	  _self.indexRoute = config.indexRoute || 'index';
 	  _self.separator =  config.separator || '/';
@@ -11853,8 +11932,8 @@ webpackJsonp([1,0],[
 	    _self.routes[key] = route;
 	    _self.patterns.push(route.pattern);
 	    _self.patternMap[route.pattern] = key;
-	  })
-	  console.log(_self.patterns, _self.routes)
+	  });
+
 	  return _self;
 	}
 
@@ -11881,7 +11960,8 @@ webpackJsonp([1,0],[
 	    var positions = params.reduce(function(acc, param) {
 	      var paramName = param.replace(':', '');
 	      var index = parts.indexOf(param);
-	      return acc[paramName] = index;
+	      acc[paramName] = index;
+	      return acc;
 	    }, {});
 	    route.positions = positions;
 	    route.pattern = path.replace(/(:\w*)/g, '([\\w\\-]*)');
@@ -11931,24 +12011,40 @@ webpackJsonp([1,0],[
 
 	Router.prototype.getStateName = function(hash) {
 	  if(!hash) hash = window.location.hash;
+	  this.params = null;
 	  var sanitizedHash = hash.replace(/[#]/g, '').replace(/^\//g, '');
 	  var qualifyingPaths = this.patterns.filter(function(pattern) {
 	    return !(hash.match(pattern) === null);
 	  });
 	  if( qualifyingPaths.length === 1 ) {
-	    return this.patternMap[qualifyingPaths[0]];
+	    var stateName = this.patternMap[qualifyingPaths[0]];
+	    var state = this.routes[stateName];
+	    if( state.hasParams ) {
+	      var parts = sanitizedHash.split(this.separator);
+
+	      this.params = Object.keys(state.positions).reduce(function(acc, key) {
+	        acc[key] = parts[state.positions[key]];
+	        return acc;
+	      }, {});
+	    }
+	    // this.params =
+	    return stateName;
 	  } else {
 	    //DO MORE CHECKS
 	    //Very Rare situation for now
+	    console.log('You need to manage race condition now!')
 	  }
 	  return this.indexRoute;
 	}
 
+	Router.prototype.params = function(stateName, sanitizedHash) {
+	  _self.routes[state].pattern
+	}
+
 	Router.prototype.replace = function(data, state) {
 	  var _self = this;
-	  console.log(state)
 	  $(_self.mountPoint).empty().html(data);
-	  _self.routes[state].controller();
+	  _self.routes[state].controller(_self.params);
 	}
 
 	Router.prototype.fetch = function(path, state, callback) {

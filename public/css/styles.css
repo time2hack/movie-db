@@ -12,6 +12,9 @@ body {
   padding-left: 1rem;
 }
 
+.hidden {
+  display: none !important;
+}
 /* Custom page header */
 .header {
   padding-bottom: 1rem;

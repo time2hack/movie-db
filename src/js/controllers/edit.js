@@ -1,26 +1,42 @@
 var $ = require('jquery');
 var firebase = require('firebase');
 module.exports = function(Auth, redirect) {
-  return function () {
+  return function (params) {
     // Get a reference to the database service
     var database = firebase.database();
+    var query = firebase.database().ref("movies/"+params.id);
 
+    //Fire Query
+    query.once("value").then(fillData)
+
+    //Fill The data
+    function fillData(snap) {
+      var data = snap.val();
+      console.log(data)
+      $('#movieName').val(data.movieName);
+      $('#releaseYear').val(data.releaseYear);
+      $('#generes').val((data.generes || []).join(', '))
+      $('#duration').val(data.duration);
+      $('#directors').val((data.directors || []).join(', '))
+      $('#actors').val((data.actors || []).join(', '))
+      $('#imdbUrl').val(data.imdbUrl);
+    }
+
+    //Save function
     function saveMovie(movie) {
       var uid = firebase.auth().currentUser.uid;
-      // Get a key for a new Post.
-      var newPostKey = firebase.database().ref().child('movies').push().key;
-
-      // Write the new post's data simultaneously in the movies list and the user's post list.
+      var postKey = params.id;
+      console.log(params, postKey)
       var updates = {};
-      updates['/movies/' + newPostKey] = movie;
-      updates['/user-movies/' + uid + '/' + newPostKey] = movie;
+      updates['/movies/' + postKey] = movie;
+      updates['/user-movies/' + uid + '/' + postKey] = movie;
 
-      return firebase.database().ref().update(updates);
+      return database.ref().update(updates);
     }
 
     $(document)
-      .off('click', '#add')
-      .on('click', '#add', function(e) {
+      .off('click', '#save')
+      .on('click', '#save', function(e) {
         var uid = firebase.auth().currentUser.uid;
         var movie = {
           movieName: $('#movieName').val(),
@@ -38,8 +54,9 @@ module.exports = function(Auth, redirect) {
           imdbUrl: $('#imdbUrl').val(),
           uid: uid
         }
-        var response = saveMovie(movie);
-        console.log(response)
+        var response = saveMovie(movie).then(function(){
+          redirect('list');
+        });
       })
   }
 }

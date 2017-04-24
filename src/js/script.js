@@ -52,7 +52,7 @@ var appRouter = new Router({
     },
     edit : {
       path: 'edit/:id',
-      templateUrl: 'partials/add.html',
+      templateUrl: 'partials/edit.html',
       onEnter: function() {
         var user = Auth.checkLoggedInUser();
         if( user && !window.location.hash.match('/login') ){

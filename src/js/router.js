@@ -6,6 +6,8 @@ var Router = function(config) {
   _self.routes = {};
   _self.patterns = [];
   _self.patternMap = {};
+  //This variable will be updated on every hashchange
+  _self.params = null;
   _self.mountPoint = config.mountPoint || '#root';
   _self.indexRoute = config.indexRoute || 'index';
   _self.separator =  config.separator || '/';
@@ -16,8 +18,8 @@ var Router = function(config) {
     _self.routes[key] = route;
     _self.patterns.push(route.pattern);
     _self.patternMap[route.pattern] = key;
-  })
-  console.log(_self.patterns, _self.routes)
+  });
+
   return _self;
 }
 
@@ -44,7 +46,8 @@ Router.prototype.enhanceRoute = function (route) {
     var positions = params.reduce(function(acc, param) {
       var paramName = param.replace(':', '');
       var index = parts.indexOf(param);
-      return acc[paramName] = index;
+      acc[paramName] = index;
+      return acc;
     }, {});
     route.positions = positions;
     route.pattern = path.replace(/(:\w*)/g, '([\\w\\-]*)');
@@ -94,24 +97,40 @@ Router.prototype.go = function(path) {
 
 Router.prototype.getStateName = function(hash) {
   if(!hash) hash = window.location.hash;
+  this.params = null;
   var sanitizedHash = hash.replace(/[#]/g, '').replace(/^\//g, '');
   var qualifyingPaths = this.patterns.filter(function(pattern) {
     return !(hash.match(pattern) === null);
   });
   if( qualifyingPaths.length === 1 ) {
-    return this.patternMap[qualifyingPaths[0]];
+    var stateName = this.patternMap[qualifyingPaths[0]];
+    var state = this.routes[stateName];
+    if( state.hasParams ) {
+      var parts = sanitizedHash.split(this.separator);
+
+      this.params = Object.keys(state.positions).reduce(function(acc, key) {
+        acc[key] = parts[state.positions[key]];
+        return acc;
+      }, {});
+    }
+    // this.params =
+    return stateName;
   } else {
     //DO MORE CHECKS
     //Very Rare situation for now
+    console.log('You need to manage race condition now!')
   }
   return this.indexRoute;
 }
 
+Router.prototype.params = function(stateName, sanitizedHash) {
+  _self.routes[state].pattern
+}
+
 Router.prototype.replace = function(data, state) {
   var _self = this;
-  console.log(state)
   $(_self.mountPoint).empty().html(data);
-  _self.routes[state].controller();
+  _self.routes[state].controller(_self.params);
 }
 
 Router.prototype.fetch = function(path, state, callback) {
