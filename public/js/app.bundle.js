@@ -4,7 +4,7 @@ webpackJsonp([1,0],[
 
 	var $ = __webpack_require__(1);
 	var Auth = __webpack_require__(8)
-	var Router = __webpack_require__(13);
+	var Router = __webpack_require__(16);
 
 	//Redirect to some Page or URL
 	var redirect = function(to) {
@@ -26,7 +26,7 @@ webpackJsonp([1,0],[
 	          return 'index';
 	        }
 	      },
-	      controller: __webpack_require__(12)(Auth, redirect)
+	      controller: __webpack_require__(13)(Auth, redirect)
 	    },
 	    index : {
 	      path: 'index',
@@ -39,7 +39,7 @@ webpackJsonp([1,0],[
 	          return 'login';
 	        }
 	      },
-	      controller: __webpack_require__(10)(Auth, redirect)
+	      controller: __webpack_require__(11)(Auth, redirect)
 	    },
 	    add : {
 	      path: 'add',
@@ -54,6 +54,19 @@ webpackJsonp([1,0],[
 	      },
 	      controller: __webpack_require__(9)(Auth, redirect)
 	    },
+	    edit : {
+	      path: 'edit/:id',
+	      templateUrl: 'partials/edit.html',
+	      onEnter: function() {
+	        var user = Auth.checkLoggedInUser();
+	        if( user && !window.location.hash.match('/login') ){
+	          return true;
+	        } else {
+	          return 'login';
+	        }
+	      },
+	      controller: __webpack_require__(10)(Auth, redirect)
+	    },
 	    view : {
 	      path: 'view',
 	      templateUrl: 'partials/view.html',
@@ -65,12 +78,12 @@ webpackJsonp([1,0],[
 	          return 'login';
 	        }
 	      },
-	      controller: __webpack_require__(20)(Auth, redirect)
+	      controller: __webpack_require__(14)(Auth, redirect)
 	    },
 	    list : {
 	      path: 'list',
 	      templateUrl: 'partials/list.html',
-	      controller: __webpack_require__(11)(Auth, redirect)
+	      controller: __webpack_require__(12)(Auth, redirect)
 	    }
 	  }
 	})
@@ -11101,7 +11114,7 @@ webpackJsonp([1,0],[
 
 	var $ = __webpack_require__(1);
 	var firebase = __webpack_require__(3);
-	var mimes = __webpack_require__(19);
+	var mimes = __webpack_require__(15);
 	module.exports = function(Auth, redirect) {
 	  return function () {
 	    // Get a reference to the database service
@@ -11222,6 +11235,85 @@ webpackJsonp([1,0],[
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
+	var firebase = __webpack_require__(3);
+	module.exports = function(Auth, redirect) {
+	  return function (params) {
+	    // Get a reference to the database service
+	    var database = firebase.database();
+	    var query = firebase.database().ref("movies/"+params.id);
+
+	    //Fire Query
+	    query.once("value").then(fillData)
+
+	    //Fill The data
+	    function fillData(snap) {
+	      var data = snap.val();
+	      console.log(data)
+	      $('#movieName').val(data.movieName);
+	      $('#releaseYear').val(data.releaseYear);
+	      $('#generes').val((data.generes || []).join(', '))
+	      $('#duration').val(data.duration);
+	      $('#directors').val((data.directors || []).join(', '))
+	      $('#actors').val((data.actors || []).join(', '))
+	      $('#imdbUrl').val(data.imdbUrl);
+	    }
+
+	    //Save function
+	    function saveMovie(movie) {
+	      var uid = firebase.auth().currentUser.uid;
+	      var postKey = params.id;
+	      console.log(params, postKey)
+	      var updates = {};
+	      updates['/movies/' + postKey] = movie;
+	      updates['/user-movies/' + uid + '/' + postKey] = movie;
+
+	      return database.ref().update(updates);
+	    }
+
+	    $(document)
+	      .off('click', '#save')
+	      .on('click', '#save', function(e) {
+	        var uid = firebase.auth().currentUser.uid;
+	        var movie = {
+	          movieName: $('#movieName').val(),
+	          releaseYear: $('#releaseYear').val(),
+	          generes: $('#generes').val().split(',').map(function(item) {
+	            return item.trim();
+	          }),
+	          duration: $('#duration').val(),
+	          directors: $('#directors').val().split(',').map(function(item) {
+	            return item.trim();
+	          }),
+	          actors: $('#actors').val().split(',').map(function(item) {
+	            return item.trim();
+	          }),
+	          imdbUrl: $('#imdbUrl').val(),
+	          uid: uid
+	        }
+	        var response = saveMovie(movie).then(function(){
+	          redirect('list');
+	        });
+	      })
+	  }
+	}
+	//'{"movieName":"Iron Man","releaseYear":"May, 2008","generes":["Action","Adventure","Sci-Fi"],"duration":"126","directors":["Jon Favreau"],"actors":["Robert Downey Jr.","Gwyneth Paltrow","Terrence Howard","Jeff Bridges"],"imdbUrl":"http://www.imdb.com/title/tt0371746/"}'
+	/*
+	Object.keys(movie).map(function(key) {
+	  if(typeof movie[key] === 'string'){
+	    document.querySelector('#'+key).setAttribute('value', movie[key])
+	  } else {
+	    document.querySelector('#'+key).setAttribute('value', movie[key].join(', '))
+	  }
+	  return key;
+	})
+	*/
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var $ = __webpack_require__(1);
 
 	module.exports = function (Auth, redirect) {
 	  return function(){
@@ -11247,7 +11339,6 @@ webpackJsonp([1,0],[
 	    $(document)
 	      .off('click', '.logout-link')
 	      .on('click', '.logout-link', function (e) {
-	        console.log('logout')
 	        if( Auth.logout() ){
 	          $('.login-link').css('display', 'block');
 	          $('.logout-link').hide();
@@ -11259,7 +11350,7 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var firebase = __webpack_require__(3);
@@ -11289,11 +11380,12 @@ webpackJsonp([1,0],[
 
 	      html += '<li class="list-group-item media movie">';
 	        html += '<div class="media-body">';
+	        editLink = ' <a href="#/edit/'+movieRef.key+'"><i class="fa fa-pencil" aria-hidden="true"></i></a>';
 	        viewLink = '<a href="#/view/' + movieRef.key + '">' + movie.movieName + '</a>'
 	        if( movie.imdbUrl !== '' ){
 	          imdb += ' <a href="' + movie.imdbUrl + '" target="_blank"><i class="fa fa-imdb" aria-hidden="true"></i></a>';
 	        }
-	        html += '<h5 class="media-heading">'+ viewLink + imdb + '</h5>';
+	        html += '<h5 class="media-heading">'+ viewLink + imdb + editLink +'</h5>';
 	        html += '<h6><b>Director: </b>'+movie.directors.join(', ')+'</h6>';
 	        html += '<small><b>Released in: </b>'+(movie.releaseYear)+'<br/>';
 	        html += '<b>Duration: </b>'+durationConvertor(movie.duration)+'<br/>';
@@ -11325,7 +11417,7 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
@@ -11402,188 +11494,7 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var $ = __webpack_require__(1);
-
-
-	var Router = function(config) {
-	  console.log(config)
-	  this.routes = config.routes || {};
-	  this.mountPoint = config.mountPoint || '#root';
-	  this.indexRoute = config.indexRoute || 'index';
-	  return this;
-	}
-
-	Router.prototype.setRedirect = function (func) {
-	  this.prototype.redirect = func;
-	}
-
-	Router.prototype.add = function(route) {
-	  /**
-	   * route: {
-	   *   path: String,
-	   *   template: template string,
-	   *   templateUrl: path for ajax,
-	   *   onEnter: function(),
-	   *   controller: function(),
-	   *   onLeave: function()
-	   * }
-	   */
-	  this.routes[name] = route;
-	};
-
-	Router.prototype.listen = function() {
-	  var _self = this
-	  if ( "onhashchange" in window.document.body ) {
-	    window.addEventListener('hashchange', function (e) {
-	      console.log(e);
-	      _self.render(_self.getStateName(window.location.hash));
-	    }, false)
-	  } else {
-	    _self.fallback(window);
-	  }
-
-	  //Start with indexRoute
-	  if(!_self.routes[_self.getStateName(window.location.hash)]){
-	    _self.go(_self.indexRoute);
-	  } else {
-	    console.log('render')
-	    _self.render(window.location.hash);
-	  }
-	}
-
-	Router.prototype.go = function(path) {
-	  window.location.hash = path[0] === '/' ? path : '/' + path;
-	}
-
-	Router.prototype.getStateName = function(hash) {
-	  return hash.replace(/[#\/]/g, '')
-	}
-
-	Router.prototype.replace = function(data, state) {
-	  var _self = this;
-	  console.log(state)
-	  $(_self.mountPoint).empty().html(data);
-	  _self.routes[state].controller();
-	}
-
-	Router.prototype.fetch = function(path, state, callback) {
-	  var _self = this;
-	  $.get(path, function(data){
-	    _self.routes[state].template = data;
-	    callback.call(_self, data, state);
-	  })
-	}
-
-	Router.prototype.fetchAndReplace = function(stateName) {
-	  var _self = this;
-	  var state = _self.routes[stateName];
-
-	  if( state.templateUrl ){
-	    if( !state.template){
-	      _self.fetch.call(_self, state.templateUrl, stateName, _self.replace);
-	    } else {
-	      _self.replace.call(_self, state.template, stateName);
-	    }
-	  } else {
-	    _self.replace.call(_self, state.template, stateName);
-	  }
-	}
-
-	Router.prototype.render = function(name) {
-	  var _self = this;
-	  var stateName = _self.getStateName(name);
-	  var state = _self.routes[stateName];
-	  if( state ){
-	    console.log(name, state);
-	    if(typeof state.onEnter === 'function'){
-	      var enterResponse = state.onEnter();
-	      if( enterResponse === true ){
-	        _self.fetchAndReplace.call(_self, stateName);
-	      } else if( typeof enterResponse === 'string' ){
-	        _self.go(enterResponse);
-	      }
-	    } else {
-	      _self.fetchAndReplace.call(_self, stateName);
-	    }
-	  } else {
-	    _self.render(_self.indexRoute);
-	  }
-	};
-
-	Router.prototype.fallback = function(window) {
-	  // https://developer.mozilla.org/en-US/docs/Web/Events/hashchange
-	  // exit if the browser implements that event
-	  if ( "onhashchange" in window.document.body ) { return; }
-
-	  var location = window.location,
-	    oldURL = location.href,
-	    oldHash = location.hash;
-
-	  // check the location hash on a 100ms interval
-	  setInterval(function() {
-	    var newURL = location.href,
-	      newHash = location.hash;
-
-	    // if the hash has changed and a handler has been bound...
-	    if ( newHash != oldHash && typeof window.onhashchange === "function" ) {
-	      // execute the handler
-	      window.onhashchange({
-	        type: "hashchange",
-	        oldURL: oldURL,
-	        newURL: newURL
-	      });
-
-	      oldURL = newURL;
-	      oldHash = newHash;
-	    }
-	  }, 100);
-	}
-
-	module.exports = Router;
-
-
-/***/ },
-/* 14 */,
-/* 15 */,
-/* 16 */,
-/* 17 */,
-/* 18 */,
-/* 19 */
-/***/ function(module, exports) {
-
-	module.exports = {
-	  "image/gif": {
-	    "source": "iana",
-	    "compressible": false,
-	    "extensions": ["gif"]
-	  },
-	  "image/jpeg": {
-	    "source": "iana",
-	    "compressible": false,
-	    "extensions": ["jpeg","jpg","jpe"]
-	  },
-	  "image/png": {
-	    "source": "iana",
-	    "compressible": false,
-	    "extensions": ["png"]
-	  },
-	  "image/svg+xml": {
-	    "source": "iana",
-	    "compressible": true,
-	    "extensions": ["svg","svgz"]
-	  },
-	  "image/webp": {
-	    "source": "apache",
-	    "extensions": ["webp"]
-	  },
-	};
-
-
-/***/ },
-/* 20 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
@@ -11621,6 +11532,253 @@ webpackJsonp([1,0],[
 	      })
 	  }
 	}
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports) {
+
+	module.exports = {
+	  "image/gif": {
+	    "source": "iana",
+	    "compressible": false,
+	    "extensions": ["gif"]
+	  },
+	  "image/jpeg": {
+	    "source": "iana",
+	    "compressible": false,
+	    "extensions": ["jpeg","jpg","jpe"]
+	  },
+	  "image/png": {
+	    "source": "iana",
+	    "compressible": false,
+	    "extensions": ["png"]
+	  },
+	  "image/svg+xml": {
+	    "source": "iana",
+	    "compressible": true,
+	    "extensions": ["svg","svgz"]
+	  },
+	  "image/webp": {
+	    "source": "apache",
+	    "extensions": ["webp"]
+	  },
+	};
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var $ = __webpack_require__(1);
+
+
+	var Router = function(config) {
+	  var _self = this;
+	  _self.routes = {};
+	  _self.patterns = [];
+	  _self.patternMap = {};
+	  //This variable will be updated on every hashchange
+	  _self.params = null;
+	  _self.mountPoint = config.mountPoint || '#root';
+	  _self.indexRoute = config.indexRoute || 'index';
+	  _self.separator =  config.separator || '/';
+
+	  //Enhance routes and prepare a flat array of patterns
+	  Object.keys(config.routes).forEach(function(key) {
+	    var route = _self.enhanceRoute(config.routes[key]);
+	    _self.routes[key] = route;
+	    _self.patterns.push(route.pattern);
+	    _self.patternMap[route.pattern] = key;
+	  });
+
+	  return _self;
+	}
+
+	Router.prototype.setRedirect = function (func) {
+	  this.prototype.redirect = func;
+	}
+
+	Router.prototype.enhanceRoute = function (route) {
+	  if(!route.path){
+	    throw new Error('Route needs to have a path');
+	  }
+
+	  var path = route.path;
+	  // Check for params
+	  var params = path.match(/(:\w*)/g);
+	  var parts = path.split(this.separator);
+	  route.parts = parts;
+	  route.depth = parts.length;
+	  route.hasParams = params ? Boolean(params.length) : false;
+
+	  route.pattern = path;
+	  // Path has params
+	  if( route.hasParams ) {
+	    var positions = params.reduce(function(acc, param) {
+	      var paramName = param.replace(':', '');
+	      var index = parts.indexOf(param);
+	      acc[paramName] = index;
+	      return acc;
+	    }, {});
+	    route.positions = positions;
+	    route.pattern = path.replace(/(:\w*)/g, '([\\w\\-]*)');
+	  }
+
+	  route.pattern = route.pattern.split(this.separator).join('\\'+this.separator);
+	  return route;
+	}
+
+	Router.prototype.add = function(route) {
+	  /**
+	   * route: {
+	   *   path: String,
+	   *   template: template string,
+	   *   templateUrl: path for ajax,
+	   *   onEnter: function(),
+	   *   controller: function(),
+	   *   onLeave: function()
+	   * }
+	   */
+	  this.routes[route.name] = route;
+	};
+
+	Router.prototype.listen = function() {
+	  var _self = this
+	  if ( 'onhashchange' in window.document.body ) {
+	    window.addEventListener('hashchange', function (e) {
+	      console.log(e);
+	      _self.render(_self.getStateName());
+	    }, false)
+	  } else {
+	    _self.fallback(window);
+	  }
+
+	  var state = _self.getStateName();
+	  //Start with indexRoute
+	  if(!_self.routes[state]){
+	    _self.go(_self.indexRoute);
+	  } else {
+	    _self.render(state);
+	  }
+	}
+
+	Router.prototype.go = function(path) {
+	  window.location.hash = path[0] === '/' ? path : '/' + path;
+	}
+
+	Router.prototype.getStateName = function(hash) {
+	  if(!hash) hash = window.location.hash;
+	  this.params = null;
+	  var sanitizedHash = hash.replace(/[#]/g, '').replace(/^\//g, '');
+	  var qualifyingPaths = this.patterns.filter(function(pattern) {
+	    return !(hash.match(pattern) === null);
+	  });
+	  if( qualifyingPaths.length === 1 ) {
+	    var stateName = this.patternMap[qualifyingPaths[0]];
+	    var state = this.routes[stateName];
+	    if( state.hasParams ) {
+	      var parts = sanitizedHash.split(this.separator);
+
+	      this.params = Object.keys(state.positions).reduce(function(acc, key) {
+	        acc[key] = parts[state.positions[key]];
+	        return acc;
+	      }, {});
+	    }
+	    // this.params =
+	    return stateName;
+	  } else {
+	    //DO MORE CHECKS
+	    //Very Rare situation for now
+	    console.log('You need to manage race condition now!')
+	  }
+	  return this.indexRoute;
+	}
+
+	Router.prototype.params = function(stateName, sanitizedHash) {
+	  _self.routes[state].pattern
+	}
+
+	Router.prototype.replace = function(data, state) {
+	  var _self = this;
+	  $(_self.mountPoint).empty().html(data);
+	  _self.routes[state].controller(_self.params);
+	}
+
+	Router.prototype.fetch = function(path, state, callback) {
+	  var _self = this;
+	  $.get(path, function(data){
+	    _self.routes[state].template = data;
+	    callback.call(_self, data, state);
+	  })
+	}
+
+	Router.prototype.fetchAndReplace = function(stateName) {
+	  var _self = this;
+	  var state = _self.routes[stateName];
+
+	  if( state.templateUrl ){
+	    if( !state.template){
+	      _self.fetch.call(_self, state.templateUrl, stateName, _self.replace);
+	    } else {
+	      _self.replace.call(_self, state.template, stateName);
+	    }
+	  } else {
+	    _self.replace.call(_self, state.template, stateName);
+	  }
+	}
+
+	Router.prototype.render = function(name) {
+	  if(!name) name = _self.getStateName(name);
+	  console.log(name);
+	  var _self = this;
+	  var state = _self.routes[name];
+	  if( state ){
+	    if(typeof state.onEnter === 'function'){
+	      var enterResponse = state.onEnter();
+	      if( enterResponse === true ){
+	        _self.fetchAndReplace.call(_self, name);
+	      } else if( typeof enterResponse === 'string' ){
+	        _self.go(enterResponse);
+	      }
+	    } else {
+	      _self.fetchAndReplace.call(_self, name);
+	    }
+	  } else {
+	    _self.render(_self.indexRoute);
+	  }
+	};
+
+	Router.prototype.fallback = function(window) {
+	  // https://developer.mozilla.org/en-US/docs/Web/Events/hashchange
+	  // exit if the browser implements that event
+	  if ( 'onhashchange' in window.document.body ) { return; }
+
+	  var location = window.location,
+	    oldURL = location.href,
+	    oldHash = location.hash;
+
+	  // check the location hash on a 100ms interval
+	  setInterval(function() {
+	    var newURL = location.href,
+	      newHash = location.hash;
+
+	    // if the hash has changed and a handler has been bound...
+	    if ( newHash != oldHash && typeof window.onhashchange === 'function' ) {
+	      // execute the handler
+	      window.onhashchange({
+	        type: 'hashchange',
+	        oldURL: oldURL,
+	        newURL: newURL
+	      });
+
+	      oldURL = newURL;
+	      oldHash = newHash;
+	    }
+	  }, 100);
+	}
+
+	module.exports = Router;
 
 
 /***/ }

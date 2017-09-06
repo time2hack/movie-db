@@ -50,6 +50,19 @@ var appRouter = new Router({
       },
       controller: require('./controllers/add')(Auth, redirect)
     },
+    edit : {
+      path: 'edit/:id',
+      templateUrl: 'partials/edit.html',
+      onEnter: function() {
+        var user = Auth.checkLoggedInUser();
+        if( user && !window.location.hash.match('/login') ){
+          return true;
+        } else {
+          return 'login';
+        }
+      },
+      controller: require('./controllers/edit')(Auth, redirect)
+    },
     view : {
       path: 'view',
       templateUrl: 'partials/view.html',

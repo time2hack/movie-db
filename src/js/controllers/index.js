@@ -24,7 +24,6 @@ module.exports = function (Auth, redirect) {
     $(document)
       .off('click', '.logout-link')
       .on('click', '.logout-link', function (e) {
-        console.log('logout')
         if( Auth.logout() ){
           $('.login-link').css('display', 'block');
           $('.logout-link').hide();

@@ -25,11 +25,12 @@ var ListController = function(Auth, redirect) {
 
       html += '<li class="list-group-item media movie">';
         html += '<div class="media-body">';
+        editLink = ' <a href="#/edit/'+movieRef.key+'"><i class="fa fa-pencil" aria-hidden="true"></i></a>';
         viewLink = '<a href="#/view/' + movieRef.key + '">' + movie.movieName + '</a>'
         if( movie.imdbUrl !== '' ){
           imdb += ' <a href="' + movie.imdbUrl + '" target="_blank"><i class="fa fa-imdb" aria-hidden="true"></i></a>';
         }
-        html += '<h5 class="media-heading">'+ viewLink + imdb + '</h5>';
+        html += '<h5 class="media-heading">'+ viewLink + imdb + editLink +'</h5>';
         html += '<h6><b>Director: </b>'+movie.directors.join(', ')+'</h6>';
         html += '<small><b>Released in: </b>'+(movie.releaseYear)+'<br/>';
         html += '<b>Duration: </b>'+durationConvertor(movie.duration)+'<br/>';
