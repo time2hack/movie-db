@@ -54,6 +54,19 @@ webpackJsonp([1,0],[
 	      },
 	      controller: __webpack_require__(9)(Auth, redirect)
 	    },
+	    view : {
+	      path: 'view',
+	      templateUrl: 'partials/view.html',
+	      onEnter: function() {
+	        var user = Auth.checkLoggedInUser();
+	        if( user && !window.location.hash.match('/login') ){
+	          return true;
+	        } else {
+	          return 'login';
+	        }
+	      },
+	      controller: __webpack_require__(20)(Auth, redirect)
+	    },
 	    list : {
 	      path: 'list',
 	      templateUrl: 'partials/list.html',
@@ -11088,6 +11101,7 @@ webpackJsonp([1,0],[
 
 	var $ = __webpack_require__(1);
 	var firebase = __webpack_require__(3);
+	var mimes = __webpack_require__(19);
 	module.exports = function(Auth, redirect) {
 	  return function () {
 	    // Get a reference to the database service
@@ -11098,12 +11112,71 @@ webpackJsonp([1,0],[
 	      // Get a key for a new Post.
 	      var newPostKey = firebase.database().ref().child('movies').push().key;
 
-	      // Write the new post's data simultaneously in the movies list and the user's post list.
-	      var updates = {};
-	      updates['/movies/' + newPostKey] = movie;
-	      updates['/user-movies/' + uid + '/' + newPostKey] = movie;
+	      // Create a root reference
+	      var storageRef = firebase.storage().ref();
+	      // Points to 'images'
+	      var imagesRef = storageRef.child('images');
 
-	      return firebase.database().ref().update(updates);
+	      var file = $('#poster').get(0).files[0];
+	      var downloadURL = '';
+	      var done = function() {
+	        movie.poster = downloadURL;
+
+	        // Write the new post's data simultaneously in the movies list and the user's post list.
+	        var updates = {};
+	        updates['/movies/' + newPostKey] = movie;
+	        updates['/user-movies/' + uid + '/' + newPostKey] = movie;
+
+	        return firebase.database().ref().update(updates);
+	      }
+	      if(mimes[file.type].extensions[0]) {
+
+	        // Create the file metadata
+	        var metadata = {
+	          contentType: file.type
+	        };
+
+	        // Upload file and metadata to the object
+	        var uploadTask = imagesRef.child(newPostKey + '_poster.' + mimes[file.type].extensions[0]).put(file, metadata);
+
+	        // Listen for state changes, errors, and completion of the upload.
+	        uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
+	        function(snapshot) {
+	          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+	          var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+	          console.log('Upload is ' + progress + '% done');
+	          switch (snapshot.state) {
+	            case firebase.storage.TaskState.PAUSED: // or 'paused'
+	              console.log('Upload is paused');
+	              break;
+	            case firebase.storage.TaskState.RUNNING: // or 'running'
+	              console.log('Upload is running');
+	              break;
+	          }
+	        },
+	        function(error) {
+	          // A full list of error codes is available at
+	          // https://firebase.google.com/docs/storage/web/handle-errors
+	          console.error(error);
+	          switch (error.code) {
+	            case 'storage/unauthorized':
+	              // User doesn't have permission to access the object
+	              break;
+	            case 'storage/canceled':
+	              // User canceled the upload
+	              break;
+	            case 'storage/unknown':
+	              // Unknown error occurred, inspect error.serverResponse
+	              break;
+	          }
+	          done();
+	        },
+	        function() {
+	          // Upload completed successfully, now we can get the download URL
+	          downloadURL = uploadTask.snapshot.downloadURL;
+	          done()
+	        });
+	      }
 	    }
 
 	    $(document)
@@ -11199,7 +11272,7 @@ webpackJsonp([1,0],[
 	    // Get a reference to the database service
 	    var markup = '';
 	    var database = firebase.database();
-	    var query = firebase.database().ref("movies").limitToFirst(20);
+	    var query = firebase.database().ref("movies")//.limitToFirst(20);
 	    query.once("value")
 	      .then(function(snapshot) {
 	        snapshot.forEach(renderSingleSnapshot);
@@ -11207,25 +11280,27 @@ webpackJsonp([1,0],[
 	        $(document).find('#list').html(markup);
 	      });
 
-	    var renderSingleSnapshot = function(childSnapshot) {
-	      var movie = childSnapshot.val();
-	      console.log(childSnapshot.key, movie);
+	    var renderSingleSnapshot = function(movieRef) {
+	      var movie = movieRef.val();
+	      console.log(movieRef.key, movie);
 
+	      var imdb = ''
 	      var html = '';
 
-	      html += '<li class="list-group-item movie">';
-	        html += '<div>';
-	        if( movie.imdbUrl === '' ){
-	          html += '<h5>'+  movie.movieName +'</h5>';
-	        } else {
-	          html += '<h5>'+movie.movieName+' <a href="'+movie.imdbUrl+'" target="_blank"><i class="fa fa-imdb" aria-hidden="true"></i></a>' +'</h5>';
+	      html += '<li class="list-group-item media movie">';
+	        html += '<div class="media-body">';
+	        viewLink = '<a href="#/view/' + movieRef.key + '">' + movie.movieName + '</a>'
+	        if( movie.imdbUrl !== '' ){
+	          imdb += ' <a href="' + movie.imdbUrl + '" target="_blank"><i class="fa fa-imdb" aria-hidden="true"></i></a>';
 	        }
+	        html += '<h5 class="media-heading">'+ viewLink + imdb + '</h5>';
 	        html += '<h6><b>Director: </b>'+movie.directors.join(', ')+'</h6>';
 	        html += '<small><b>Released in: </b>'+(movie.releaseYear)+'<br/>';
 	        html += '<b>Duration: </b>'+durationConvertor(movie.duration)+'<br/>';
 	        html += '<b>Actors: </b>';
 	        html += (movie.actors || movie.stars).join(', ') + '</small>';
 	        html += '</div>';
+	        html += `<div class="media-right"><img class="media-object" height="125" src="${movie.poster}" alt="${movie.movieName}"></div>`;
 	      html += '</li>';
 
 	      markup += html;
@@ -11468,6 +11543,84 @@ webpackJsonp([1,0],[
 	}
 
 	module.exports = Router;
+
+
+/***/ },
+/* 14 */,
+/* 15 */,
+/* 16 */,
+/* 17 */,
+/* 18 */,
+/* 19 */
+/***/ function(module, exports) {
+
+	module.exports = {
+	  "image/gif": {
+	    "source": "iana",
+	    "compressible": false,
+	    "extensions": ["gif"]
+	  },
+	  "image/jpeg": {
+	    "source": "iana",
+	    "compressible": false,
+	    "extensions": ["jpeg","jpg","jpe"]
+	  },
+	  "image/png": {
+	    "source": "iana",
+	    "compressible": false,
+	    "extensions": ["png"]
+	  },
+	  "image/svg+xml": {
+	    "source": "iana",
+	    "compressible": true,
+	    "extensions": ["svg","svgz"]
+	  },
+	  "image/webp": {
+	    "source": "apache",
+	    "extensions": ["webp"]
+	  },
+	};
+
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var $ = __webpack_require__(1);
+
+	module.exports = function (Auth, redirect) {
+	  return function(){
+	    console.log('view controller')
+	    //Redirect to Home
+	    var redirectToHome = function(user) {
+	      if(user){
+	        redirect('index');
+	      }
+	    }
+
+	    //Redirect to Login
+	    var redirectToLogin = function(user) {
+	      if(!user){
+	        redirect('login');
+	      }
+	    }
+
+	    $('.logout-link').css('display', 'block');
+	    $('.login-link').hide();
+
+	    //Logout Button
+	    $(document)
+	      .off('click', '.logout-link')
+	      .on('click', '.logout-link', function (e) {
+	        console.log('logout')
+	        if( Auth.logout() ){
+	          $('.login-link').css('display', 'block');
+	          $('.logout-link').hide();
+	          redirectToLogin();
+	        }
+	      })
+	  }
+	}
 
 
 /***/ }

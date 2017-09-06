@@ -2,7 +2,7 @@ var $ = require('jquery');
 
 module.exports = function (Auth, redirect) {
   return function(){
-    console.log('home controller')
+    console.log('view controller')
     //Redirect to Home
     var redirectToHome = function(user) {
       if(user){

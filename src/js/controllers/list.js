@@ -8,7 +8,7 @@ var ListController = function(Auth, redirect) {
     // Get a reference to the database service
     var markup = '';
     var database = firebase.database();
-    var query = firebase.database().ref("movies").limitToFirst(20);
+    var query = firebase.database().ref("movies")//.limitToFirst(20);
     query.once("value")
       .then(function(snapshot) {
         snapshot.forEach(renderSingleSnapshot);
@@ -16,25 +16,27 @@ var ListController = function(Auth, redirect) {
         $(document).find('#list').html(markup);
       });
 
-    var renderSingleSnapshot = function(childSnapshot) {
-      var movie = childSnapshot.val();
-      console.log(childSnapshot.key, movie);
+    var renderSingleSnapshot = function(movieRef) {
+      var movie = movieRef.val();
+      console.log(movieRef.key, movie);
 
+      var imdb = ''
       var html = '';
 
-      html += '<li class="list-group-item movie">';
-        html += '<div>';
-        if( movie.imdbUrl === '' ){
-          html += '<h5>'+  movie.movieName +'</h5>';
-        } else {
-          html += '<h5>'+movie.movieName+' <a href="'+movie.imdbUrl+'" target="_blank"><i class="fa fa-imdb" aria-hidden="true"></i></a>' +'</h5>';
+      html += '<li class="list-group-item media movie">';
+        html += '<div class="media-body">';
+        viewLink = '<a href="#/view/' + movieRef.key + '">' + movie.movieName + '</a>'
+        if( movie.imdbUrl !== '' ){
+          imdb += ' <a href="' + movie.imdbUrl + '" target="_blank"><i class="fa fa-imdb" aria-hidden="true"></i></a>';
         }
+        html += '<h5 class="media-heading">'+ viewLink + imdb + '</h5>';
         html += '<h6><b>Director: </b>'+movie.directors.join(', ')+'</h6>';
         html += '<small><b>Released in: </b>'+(movie.releaseYear)+'<br/>';
         html += '<b>Duration: </b>'+durationConvertor(movie.duration)+'<br/>';
         html += '<b>Actors: </b>';
         html += (movie.actors || movie.stars).join(', ') + '</small>';
         html += '</div>';
+        html += `<div class="media-right"><img class="media-object" height="125" src="${movie.poster}" alt="${movie.movieName}"></div>`;
       html += '</li>';
 
       markup += html;
