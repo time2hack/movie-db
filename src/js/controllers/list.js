@@ -1,14 +1,14 @@
 var firebase = require('firebase');
 var $ = require('jquery');
 
-var ListController = function(Auth, redirect) {
+var ListController = function() {
   return function () {
     var userId = firebase.auth().currentUser.uid;
 
     // Get a reference to the database service
     var markup = '';
     var database = firebase.database();
-    var query = firebase.database().ref("movies")//.limitToFirst(20);
+    var query = firebase.database().ref("movies").orderByChild('timestamp')//.limitToFirst(20);
     query.once("value")
       .then(function(snapshot) {
         snapshot.forEach(renderSingleSnapshot);

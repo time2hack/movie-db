@@ -69,7 +69,7 @@ webpackJsonp([1,0],[
 	    },
 	    view : {
 	      path: 'view',
-	      templateUrl: 'partials/view.html',
+	      templateUrl: 'partials/movie.html',
 	      onEnter: function() {
 	        var user = Auth.checkLoggedInUser();
 	        if( user && !window.location.hash.match('/login') ){
@@ -96,7 +96,7 @@ webpackJsonp([1,0],[
 	  Auth.init(function() {
 
 	    var user = Auth.checkLoggedInUser();
-
+	    console.log(user)
 	    if( user ){
 	      $('.logout-link').css('display', 'block');
 	      $('.login-link').hide();
@@ -11115,7 +11115,9 @@ webpackJsonp([1,0],[
 	var $ = __webpack_require__(1);
 	var firebase = __webpack_require__(3);
 	var mimes = __webpack_require__(15);
-	module.exports = function(Auth, redirect) {
+
+
+	module.exports = function() {
 	  return function () {
 	    // Get a reference to the database service
 	    var database = firebase.database();
@@ -11134,6 +11136,7 @@ webpackJsonp([1,0],[
 	      var downloadURL = '';
 	      var done = function() {
 	        movie.poster = downloadURL;
+	        movie.createdAt = +new Date();
 
 	        // Write the new post's data simultaneously in the movies list and the user's post list.
 	        var updates = {};
@@ -11356,14 +11359,14 @@ webpackJsonp([1,0],[
 	var firebase = __webpack_require__(3);
 	var $ = __webpack_require__(1);
 
-	var ListController = function(Auth, redirect) {
+	var ListController = function() {
 	  return function () {
 	    var userId = firebase.auth().currentUser.uid;
 
 	    // Get a reference to the database service
 	    var markup = '';
 	    var database = firebase.database();
-	    var query = firebase.database().ref("movies")//.limitToFirst(20);
+	    var query = firebase.database().ref("movies").orderByChild('timestamp')//.limitToFirst(20);
 	    query.once("value")
 	      .then(function(snapshot) {
 	        snapshot.forEach(renderSingleSnapshot);
@@ -11498,8 +11501,9 @@ webpackJsonp([1,0],[
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
+	var Auth = __webpack_require__(8);
 
-	module.exports = function (Auth, redirect) {
+	module.exports = function (redirect) {
 	  return function(){
 	    console.log('view controller')
 	    //Redirect to Home

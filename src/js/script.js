@@ -65,7 +65,7 @@ var appRouter = new Router({
     },
     view : {
       path: 'view',
-      templateUrl: 'partials/view.html',
+      templateUrl: 'partials/movie.html',
       onEnter: function() {
         var user = Auth.checkLoggedInUser();
         if( user && !window.location.hash.match('/login') ){
@@ -92,7 +92,7 @@ $(document).ready(function() {
   Auth.init(function() {
 
     var user = Auth.checkLoggedInUser();
-
+    console.log(user)
     if( user ){
       $('.logout-link').css('display', 'block');
       $('.login-link').hide();

@@ -1,6 +1,7 @@
 var $ = require('jquery');
+var Auth = require('../auth');
 
-module.exports = function (Auth, redirect) {
+module.exports = function (redirect) {
   return function(){
     console.log('view controller')
     //Redirect to Home

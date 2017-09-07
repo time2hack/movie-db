@@ -1,7 +1,9 @@
 var $ = require('jquery');
 var firebase = require('firebase');
 var mimes = require('../fileTypes');
-module.exports = function(Auth, redirect) {
+
+
+module.exports = function() {
   return function () {
     // Get a reference to the database service
     var database = firebase.database();
@@ -20,6 +22,7 @@ module.exports = function(Auth, redirect) {
       var downloadURL = '';
       var done = function() {
         movie.poster = downloadURL;
+        movie.createdAt = +new Date();
 
         // Write the new post's data simultaneously in the movies list and the user's post list.
         var updates = {};
