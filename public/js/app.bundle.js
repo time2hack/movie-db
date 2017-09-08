@@ -11366,7 +11366,7 @@ webpackJsonp([1,0],[
 	    // Get a reference to the database service
 	    var markup = '';
 	    var database = firebase.database();
-	    var query = firebase.database().ref("movies").orderByChild('timestamp')//.limitToFirst(20);
+	    var query = firebase.database().ref("movies").orderByChild('timestamp').limitToLast(20);
 	    query.once("value")
 	      .then(function(snapshot) {
 	        snapshot.forEach(renderSingleSnapshot);
@@ -11398,7 +11398,8 @@ webpackJsonp([1,0],[
 	        html += `<div class="media-right"><img class="media-object" height="125" src="${movie.poster}" alt="${movie.movieName}"></div>`;
 	      html += '</li>';
 
-	      markup += html;
+	      //Add new ones on top
+	      markup = html + markup;
 	    }
 
 	    var durationConvertor = function(minutes){
@@ -11501,39 +11502,10 @@ webpackJsonp([1,0],[
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
-	var Auth = __webpack_require__(8);
-
-	module.exports = function (redirect) {
+	module.exports = function () {
 	  return function(){
 	    console.log('view controller')
-	    //Redirect to Home
-	    var redirectToHome = function(user) {
-	      if(user){
-	        redirect('index');
-	      }
-	    }
 
-	    //Redirect to Login
-	    var redirectToLogin = function(user) {
-	      if(!user){
-	        redirect('login');
-	      }
-	    }
-
-	    $('.logout-link').css('display', 'block');
-	    $('.login-link').hide();
-
-	    //Logout Button
-	    $(document)
-	      .off('click', '.logout-link')
-	      .on('click', '.logout-link', function (e) {
-	        console.log('logout')
-	        if( Auth.logout() ){
-	          $('.login-link').css('display', 'block');
-	          $('.logout-link').hide();
-	          redirectToLogin();
-	        }
-	      })
 	  }
 	}
 
@@ -11706,7 +11678,6 @@ webpackJsonp([1,0],[
 	Router.prototype.replace = function(data, state) {
 	  var _self = this;
 	  $(_self.mountPoint).empty().html(data);
-	  _self.routes[state].controller(_self.params);
 	}
 
 	Router.prototype.fetch = function(path, state, callback) {
@@ -11748,6 +11719,7 @@ webpackJsonp([1,0],[
 	    } else {
 	      _self.fetchAndReplace.call(_self, name);
 	    }
+	    state.controller(_self.params);
 	  } else {
 	    _self.render(_self.indexRoute);
 	  }

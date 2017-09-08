@@ -8,7 +8,7 @@ var ListController = function() {
     // Get a reference to the database service
     var markup = '';
     var database = firebase.database();
-    var query = firebase.database().ref("movies").orderByChild('timestamp')//.limitToFirst(20);
+    var query = firebase.database().ref("movies").orderByChild('timestamp').limitToLast(20);
     query.once("value")
       .then(function(snapshot) {
         snapshot.forEach(renderSingleSnapshot);
@@ -40,7 +40,8 @@ var ListController = function() {
         html += `<div class="media-right"><img class="media-object" height="125" src="${movie.poster}" alt="${movie.movieName}"></div>`;
       html += '</li>';
 
-      markup += html;
+      //Add new ones on top
+      markup = html + markup;
     }
 
     var durationConvertor = function(minutes){

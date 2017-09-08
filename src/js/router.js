@@ -130,7 +130,6 @@ Router.prototype.params = function(stateName, sanitizedHash) {
 Router.prototype.replace = function(data, state) {
   var _self = this;
   $(_self.mountPoint).empty().html(data);
-  _self.routes[state].controller(_self.params);
 }
 
 Router.prototype.fetch = function(path, state, callback) {
@@ -172,6 +171,7 @@ Router.prototype.render = function(name) {
     } else {
       _self.fetchAndReplace.call(_self, name);
     }
+    state.controller(_self.params);
   } else {
     _self.render(_self.indexRoute);
   }
