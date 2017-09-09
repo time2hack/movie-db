@@ -64,7 +64,7 @@ var appRouter = new Router({
       controller: require('./controllers/edit')(Auth, redirect)
     },
     view : {
-      path: 'view',
+      path: 'view/:id',
       templateUrl: 'partials/movie.html',
       onEnter: function() {
         var user = Auth.checkLoggedInUser();

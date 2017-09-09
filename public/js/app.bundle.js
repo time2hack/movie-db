@@ -68,7 +68,7 @@ webpackJsonp([1,0],[
 	      controller: __webpack_require__(10)(Auth, redirect)
 	    },
 	    view : {
-	      path: 'view',
+	      path: 'view/:id',
 	      templateUrl: 'partials/movie.html',
 	      onEnter: function() {
 	        var user = Auth.checkLoggedInUser();
@@ -11114,8 +11114,18 @@ webpackJsonp([1,0],[
 
 	var $ = __webpack_require__(1);
 	var firebase = __webpack_require__(3);
-	var mimes = __webpack_require__(15);
 
+	var done = function() {
+	  movie.poster = downloadURL;
+	  movie.createdAt = +new Date();
+
+	  // Write the new post's data simultaneously in the movies list and the user's post list.
+	  var updates = {};
+	  updates['/movies/' + newPostKey] = movie;
+	  updates['/user-movies/' + uid + '/' + newPostKey] = movie;
+
+	  return firebase.database().ref().update(updates);
+	}
 
 	module.exports = function() {
 	  return function () {
@@ -11134,17 +11144,7 @@ webpackJsonp([1,0],[
 
 	      var file = $('#poster').get(0).files[0];
 	      var downloadURL = '';
-	      var done = function() {
-	        movie.poster = downloadURL;
-	        movie.createdAt = +new Date();
 
-	        // Write the new post's data simultaneously in the movies list and the user's post list.
-	        var updates = {};
-	        updates['/movies/' + newPostKey] = movie;
-	        updates['/user-movies/' + uid + '/' + newPostKey] = movie;
-
-	        return firebase.database().ref().update(updates);
-	      }
 	      if(mimes[file.type].extensions[0]) {
 
 	        // Create the file metadata
@@ -11196,8 +11196,8 @@ webpackJsonp([1,0],[
 	    }
 
 	    $(document)
-	      .off('click', '#add')
-	      .on('click', '#add', function(e) {
+	      .off('submit', '#add')
+	      .on('submit', '#add', function(e) {
 	        var uid = firebase.auth().currentUser.uid;
 	        var movie = {
 	          movieName: $('#movieName').val(),
@@ -11358,6 +11358,7 @@ webpackJsonp([1,0],[
 
 	var firebase = __webpack_require__(3);
 	var $ = __webpack_require__(1);
+	var durationConvertor = __webpack_require__(17);
 
 	var ListController = function() {
 	  return function () {
@@ -11378,12 +11379,15 @@ webpackJsonp([1,0],[
 	      var movie = movieRef.val();
 	      console.log(movieRef.key, movie);
 
-	      var imdb = ''
+	      var imdb = '';
+	      var editLink = '';
 	      var html = '';
 
 	      html += '<li class="list-group-item media movie">';
 	        html += '<div class="media-body">';
-	        editLink = ' <a href="#/edit/'+movieRef.key+'"><i class="fa fa-pencil" aria-hidden="true"></i></a>';
+	        if(movie.uid === userId) {
+	          editLink = ' <a href="#/edit/'+movieRef.key+'"><i class="fa fa-pencil" aria-hidden="true"></i></a>';
+	        }
 	        viewLink = '<a href="#/view/' + movieRef.key + '">' + movie.movieName + '</a>'
 	        if( movie.imdbUrl !== '' ){
 	          imdb += ' <a href="' + movie.imdbUrl + '" target="_blank"><i class="fa fa-imdb" aria-hidden="true"></i></a>';
@@ -11400,15 +11404,6 @@ webpackJsonp([1,0],[
 
 	      //Add new ones on top
 	      markup = html + markup;
-	    }
-
-	    var durationConvertor = function(minutes){
-	      if(typeof minutes === 'string'){
-	        minutes = Number(minutes);
-	      }
-	      var hours = parseInt( minutes/60, 10 );
-	      var mins = minutes%60;
-	      return hours+'hr '+mins+'min';
 	    }
 	  }
 	}
@@ -11501,48 +11496,39 @@ webpackJsonp([1,0],[
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var firebase = __webpack_require__(3);
 	var $ = __webpack_require__(1);
+	var durationConvertor = __webpack_require__(17);
+
 	module.exports = function () {
-	  return function(){
-	    console.log('view controller')
+	  return function (params) {
+	    // Get a reference to the database service
+	    var database = firebase.database();
+	    var query = firebase.database().ref("movies/"+params.id);
+
+	    //Fire Query
+	    query.once("value").then(fillData)
+	    //Fill The data
+	    function fillData(snap) {
+	      var data = snap.val();
+	      console.log(data)
+	      $('#movieName').text(data.movieName);
+	      $('#releaseYear').text(data.releaseYear);
+	      $('#generes').text((data.generes || []).join(', '))
+	      if( data.duration && !isNaN(Number(data.duration))) {
+	        $('#duration').text(', ' + durationConvertor(data.duration));
+	      }
+	      $('#directors').text((data.directors || []).join(', '))
+	      $('#actors').text((data.actors || []).join(', '))
+	      $('#imdbUrl').text(data.imdbUrl);
+	    }
 
 	  }
 	}
 
 
 /***/ },
-/* 15 */
-/***/ function(module, exports) {
-
-	module.exports = {
-	  "image/gif": {
-	    "source": "iana",
-	    "compressible": false,
-	    "extensions": ["gif"]
-	  },
-	  "image/jpeg": {
-	    "source": "iana",
-	    "compressible": false,
-	    "extensions": ["jpeg","jpg","jpe"]
-	  },
-	  "image/png": {
-	    "source": "iana",
-	    "compressible": false,
-	    "extensions": ["png"]
-	  },
-	  "image/svg+xml": {
-	    "source": "iana",
-	    "compressible": true,
-	    "extensions": ["svg","svgz"]
-	  },
-	  "image/webp": {
-	    "source": "apache",
-	    "extensions": ["webp"]
-	  },
-	};
-
-
-/***/ },
+/* 15 */,
 /* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -11755,6 +11741,20 @@ webpackJsonp([1,0],[
 	}
 
 	module.exports = Router;
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports) {
+
+	module.exports = function (minutes) {
+	  if(typeof minutes === 'string'){
+	    minutes = Number(minutes);
+	  }
+	  var hours = parseInt( minutes/60, 10 );
+	  var mins = minutes%60;
+	  return hours+'hr '+mins+'min';
+	}
 
 
 /***/ }

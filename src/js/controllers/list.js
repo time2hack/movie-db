@@ -1,5 +1,6 @@
 var firebase = require('firebase');
 var $ = require('jquery');
+var durationConvertor = require('../utils/duration');
 
 var ListController = function() {
   return function () {
@@ -8,7 +9,7 @@ var ListController = function() {
     // Get a reference to the database service
     var markup = '';
     var database = firebase.database();
-    var query = firebase.database().ref("movies").orderByChild('timestamp').limitToLast(20);
+    var query = firebase.database().ref("movies").orderByChild('createdAt').limitToLast(20);
     query.once("value")
       .then(function(snapshot) {
         snapshot.forEach(renderSingleSnapshot);
@@ -20,12 +21,15 @@ var ListController = function() {
       var movie = movieRef.val();
       console.log(movieRef.key, movie);
 
-      var imdb = ''
+      var imdb = '';
+      var editLink = '';
       var html = '';
 
       html += '<li class="list-group-item media movie">';
         html += '<div class="media-body">';
-        editLink = ' <a href="#/edit/'+movieRef.key+'"><i class="fa fa-pencil" aria-hidden="true"></i></a>';
+        if(movie.uid === userId) {
+          editLink = ' <a href="#/edit/'+movieRef.key+'"><i class="fa fa-pencil" aria-hidden="true"></i></a>';
+        }
         viewLink = '<a href="#/view/' + movieRef.key + '">' + movie.movieName + '</a>'
         if( movie.imdbUrl !== '' ){
           imdb += ' <a href="' + movie.imdbUrl + '" target="_blank"><i class="fa fa-imdb" aria-hidden="true"></i></a>';
@@ -42,15 +46,6 @@ var ListController = function() {
 
       //Add new ones on top
       markup = html + markup;
-    }
-
-    var durationConvertor = function(minutes){
-      if(typeof minutes === 'string'){
-        minutes = Number(minutes);
-      }
-      var hours = parseInt( minutes/60, 10 );
-      var mins = minutes%60;
-      return hours+'hr '+mins+'min';
     }
   }
 }
