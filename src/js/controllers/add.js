@@ -2,19 +2,18 @@ var $ = require('jquery');
 var firebase = require('firebase');
 var saveImage = require('../utils/saveImage');
 
-var done = function(movie, newPostKey) {
 
-  movie.createdAt = +new Date();
-
-  // Write the new post's data simultaneously in the movies list and the user's post list.
-  var updates = {};
-  updates['/movies/' + newPostKey] = movie;
-  updates['/user-movies/' + movie.uid + '/' + newPostKey] = movie;
-
-  return firebase.database().ref().update(updates);
-}
-
-module.exports = function() {
+module.exports = function(Auth, redirect) {
+  var done = function(movie, newPostKey) {
+    movie.createdAt = +new Date();
+    // Write the new post's data simultaneously in the movies list and the user's post list.
+    var updates = {};
+    updates['/movies/' + newPostKey] = movie;
+    updates['/user-movies/' + movie.uid + '/' + newPostKey] = movie;
+    firebase.database().ref().update(updates).then(function() {
+      redirect('view/'+newPostKey);
+    });
+  }
   return function () {
     // Get a reference to the database service
     var database = firebase.database();
@@ -28,21 +27,26 @@ module.exports = function() {
 
       var file = $('#poster').get(0).files[0];
       movie.poster = '';
-
-      saveImage(file, newPostKey + '_poster', imagesRef)
-        .then(function(){
-          movie.poster = uploadTask.snapshot.downloadURL;
-          done(movie, newPostKey);
-        })
-        .catch(function(error){
-          console.error(error)
-          done(movie, newPostKey);
-        });
+      if(file) {
+        var task = saveImage(file, newPostKey + '_poster', imagesRef)
+        task.then(function(snapshot){
+            movie.poster = task.snapshot.downloadURL;
+            done(movie, newPostKey);
+          })
+          .catch(function(error){
+            console.error(error)
+            done(movie, newPostKey);
+          });
+      } else {
+        done(movie, newPostKey);
+      }
     }
 
     $(document)
       .off('click', '#add')
       .on('click', '#add', function(e) {
+        $('#add').off('click').attr('disabled', true);
+
         var uid = firebase.auth().currentUser.uid;
         var movie = {
           movieName: $('#movieName').val(),
@@ -60,8 +64,7 @@ module.exports = function() {
           imdbUrl: $('#imdbUrl').val(),
           uid: uid
         }
-        var response = saveMovie(movie);
-        console.log(response)
+        saveMovie(movie);
       })
   }
 }
