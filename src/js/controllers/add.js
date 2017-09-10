@@ -2,14 +2,14 @@ var $ = require('jquery');
 var firebase = require('firebase');
 var saveImage = require('../utils/saveImage');
 
-var done = function() {
-  movie.poster = downloadURL;
+var done = function(movie, newPostKey) {
+
   movie.createdAt = +new Date();
 
   // Write the new post's data simultaneously in the movies list and the user's post list.
   var updates = {};
   updates['/movies/' + newPostKey] = movie;
-  updates['/user-movies/' + uid + '/' + newPostKey] = movie;
+  updates['/user-movies/' + movie.uid + '/' + newPostKey] = movie;
 
   return firebase.database().ref().update(updates);
 }
@@ -27,22 +27,22 @@ module.exports = function() {
       var imagesRef = firebase.storage().ref().child('images');
 
       var file = $('#poster').get(0).files[0];
-      var downloadURL = '';
-      var filename = newPostKey + '_poster';
+      movie.poster = '';
 
-      saveImage(file, filename, imagesRef)
-      .then(function(){
-        downloadURL = uploadTask.snapshot.downloadURL;
-        done();
-      })
-      .catch(function(error){
-        done();
-      })
+      saveImage(file, newPostKey + '_poster', imagesRef)
+        .then(function(){
+          movie.poster = uploadTask.snapshot.downloadURL;
+          done(movie, newPostKey);
+        })
+        .catch(function(error){
+          console.error(error)
+          done(movie, newPostKey);
+        });
     }
 
     $(document)
-      .off('submit', '#add')
-      .on('submit', '#add', function(e) {
+      .off('click', '#add')
+      .on('click', '#add', function(e) {
         var uid = firebase.auth().currentUser.uid;
         var movie = {
           movieName: $('#movieName').val(),

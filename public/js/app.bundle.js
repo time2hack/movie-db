@@ -3,8 +3,8 @@ webpackJsonp([1,0],[
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
-	var Auth = __webpack_require__(8)
-	var Router = __webpack_require__(16);
+	var Auth = __webpack_require__(9)
+	var Router = __webpack_require__(17);
 
 	//Redirect to some Page or URL
 	var redirect = function(to) {
@@ -26,7 +26,7 @@ webpackJsonp([1,0],[
 	          return 'index';
 	        }
 	      },
-	      controller: __webpack_require__(13)(Auth, redirect)
+	      controller: __webpack_require__(14)(Auth, redirect)
 	    },
 	    index : {
 	      path: 'index',
@@ -39,7 +39,7 @@ webpackJsonp([1,0],[
 	          return 'login';
 	        }
 	      },
-	      controller: __webpack_require__(11)(Auth, redirect)
+	      controller: __webpack_require__(12)(Auth, redirect)
 	    },
 	    add : {
 	      path: 'add',
@@ -52,7 +52,7 @@ webpackJsonp([1,0],[
 	          return 'login';
 	        }
 	      },
-	      controller: __webpack_require__(9)(Auth, redirect)
+	      controller: __webpack_require__(10)(Auth, redirect)
 	    },
 	    edit : {
 	      path: 'edit/:id',
@@ -65,7 +65,7 @@ webpackJsonp([1,0],[
 	          return 'login';
 	        }
 	      },
-	      controller: __webpack_require__(10)(Auth, redirect)
+	      controller: __webpack_require__(11)(Auth, redirect)
 	    },
 	    view : {
 	      path: 'view/:id',
@@ -78,12 +78,12 @@ webpackJsonp([1,0],[
 	          return 'login';
 	        }
 	      },
-	      controller: __webpack_require__(14)(Auth, redirect)
+	      controller: __webpack_require__(15)(Auth, redirect)
 	    },
 	    list : {
 	      path: 'list',
 	      templateUrl: 'partials/list.html',
-	      controller: __webpack_require__(12)(Auth, redirect)
+	      controller: __webpack_require__(13)(Auth, redirect)
 	    }
 	  }
 	})
@@ -10337,6 +10337,25 @@ webpackJsonp([1,0],[
 
 /***/ },
 /* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 *  Firebase libraries for browser - npm package.
+	 *
+	 * Usage:
+	 *
+	 *   firebase = require('firebase');
+	 */
+	var firebase = __webpack_require__(3);
+	__webpack_require__(5);
+	__webpack_require__(6);
+	__webpack_require__(8);
+	__webpack_require__(7);
+	module.exports = firebase;
+
+
+/***/ },
+/* 3 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {var firebase = (function(){
@@ -10376,29 +10395,24 @@ webpackJsonp([1,0],[
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
+/* 4 */
+/***/ function(module, exports) {
 
-	/**
-	 *  Firebase libraries for browser - npm package.
-	 *
-	 * Usage:
-	 *
-	 *   firebase = require('firebase');
-	 */
-	var firebase = __webpack_require__(2);
-	__webpack_require__(4);
-	__webpack_require__(5);
-	__webpack_require__(7);
-	__webpack_require__(6);
-	module.exports = firebase;
+	module.exports = function (minutes) {
+	  if(typeof minutes === 'string'){
+	    minutes = Number(minutes);
+	  }
+	  var hours = parseInt( minutes/60, 10 );
+	  var mins = minutes%60;
+	  return hours+'hr '+mins+'min';
+	}
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(2);
+	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(3);
 	(function(){
 	/*! @license Firebase v3.6.3
 	    Build: 3.6.3-rc.6
@@ -10621,10 +10635,10 @@ webpackJsonp([1,0],[
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(2);
+	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(3);
 	(function(){
 	/*! @license Firebase v3.6.3
 	    Build: 3.6.3-rc.6
@@ -10892,10 +10906,10 @@ webpackJsonp([1,0],[
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(2);
+	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(3);
 	(function(){
 	/*! @license Firebase v3.6.3
 	    Build: 3.6.3-rc.6
@@ -10937,10 +10951,10 @@ webpackJsonp([1,0],[
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(2);
+	/* WEBPACK VAR INJECTION */(function(global) {var firebase = __webpack_require__(3);
 	(function(){
 	/*! @license Firebase v3.6.3
 	    Build: 3.6.3-rc.6
@@ -10997,10 +11011,10 @@ webpackJsonp([1,0],[
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Firebase = __webpack_require__(3);
+	var Firebase = __webpack_require__(2);
 
 	module.exports = {
 	  auth: null,
@@ -11109,20 +11123,21 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
-	var firebase = __webpack_require__(3);
+	var firebase = __webpack_require__(2);
+	var saveImage = __webpack_require__(18);
 
-	var done = function() {
-	  movie.poster = downloadURL;
+	var done = function(movie, newPostKey) {
+
 	  movie.createdAt = +new Date();
 
 	  // Write the new post's data simultaneously in the movies list and the user's post list.
 	  var updates = {};
 	  updates['/movies/' + newPostKey] = movie;
-	  updates['/user-movies/' + uid + '/' + newPostKey] = movie;
+	  updates['/user-movies/' + movie.uid + '/' + newPostKey] = movie;
 
 	  return firebase.database().ref().update(updates);
 	}
@@ -11137,67 +11152,25 @@ webpackJsonp([1,0],[
 	      // Get a key for a new Post.
 	      var newPostKey = firebase.database().ref().child('movies').push().key;
 
-	      // Create a root reference
-	      var storageRef = firebase.storage().ref();
-	      // Points to 'images'
-	      var imagesRef = storageRef.child('images');
+	      var imagesRef = firebase.storage().ref().child('images');
 
 	      var file = $('#poster').get(0).files[0];
-	      var downloadURL = '';
+	      movie.poster = '';
 
-	      if(mimes[file.type].extensions[0]) {
-
-	        // Create the file metadata
-	        var metadata = {
-	          contentType: file.type
-	        };
-
-	        // Upload file and metadata to the object
-	        var uploadTask = imagesRef.child(newPostKey + '_poster.' + mimes[file.type].extensions[0]).put(file, metadata);
-
-	        // Listen for state changes, errors, and completion of the upload.
-	        uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, // or 'state_changed'
-	        function(snapshot) {
-	          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-	          var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-	          console.log('Upload is ' + progress + '% done');
-	          switch (snapshot.state) {
-	            case firebase.storage.TaskState.PAUSED: // or 'paused'
-	              console.log('Upload is paused');
-	              break;
-	            case firebase.storage.TaskState.RUNNING: // or 'running'
-	              console.log('Upload is running');
-	              break;
-	          }
-	        },
-	        function(error) {
-	          // A full list of error codes is available at
-	          // https://firebase.google.com/docs/storage/web/handle-errors
-	          console.error(error);
-	          switch (error.code) {
-	            case 'storage/unauthorized':
-	              // User doesn't have permission to access the object
-	              break;
-	            case 'storage/canceled':
-	              // User canceled the upload
-	              break;
-	            case 'storage/unknown':
-	              // Unknown error occurred, inspect error.serverResponse
-	              break;
-	          }
-	          done();
-	        },
-	        function() {
-	          // Upload completed successfully, now we can get the download URL
-	          downloadURL = uploadTask.snapshot.downloadURL;
-	          done()
+	      saveImage(file, newPostKey + '_poster', imagesRef)
+	        .then(function(){
+	          movie.poster = uploadTask.snapshot.downloadURL;
+	          done(movie, newPostKey);
+	        })
+	        .catch(function(error){
+	          console.error(error)
+	          done(movie, newPostKey);
 	        });
-	      }
 	    }
 
 	    $(document)
-	      .off('submit', '#add')
-	      .on('submit', '#add', function(e) {
+	      .off('click', '#add')
+	      .on('click', '#add', function(e) {
 	        var uid = firebase.auth().currentUser.uid;
 	        var movie = {
 	          movieName: $('#movieName').val(),
@@ -11234,11 +11207,11 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
-	var firebase = __webpack_require__(3);
+	var firebase = __webpack_require__(2);
 	module.exports = function(Auth, redirect) {
 	  return function (params) {
 	    // Get a reference to the database service
@@ -11313,7 +11286,7 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
@@ -11353,12 +11326,12 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var firebase = __webpack_require__(3);
+	var firebase = __webpack_require__(2);
 	var $ = __webpack_require__(1);
-	var durationConvertor = __webpack_require__(17);
+	var durationConvertor = __webpack_require__(4);
 
 	var ListController = function() {
 	  return function () {
@@ -11367,7 +11340,7 @@ webpackJsonp([1,0],[
 	    // Get a reference to the database service
 	    var markup = '';
 	    var database = firebase.database();
-	    var query = firebase.database().ref("movies").orderByChild('timestamp').limitToLast(20);
+	    var query = firebase.database().ref("movies").orderByChild('createdAt').limitToLast(20);
 	    query.once("value")
 	      .then(function(snapshot) {
 	        snapshot.forEach(renderSingleSnapshot);
@@ -11416,7 +11389,7 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
@@ -11493,12 +11466,12 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var firebase = __webpack_require__(3);
+	var firebase = __webpack_require__(2);
 	var $ = __webpack_require__(1);
-	var durationConvertor = __webpack_require__(17);
+	var durationConvertor = __webpack_require__(4);
 
 	module.exports = function () {
 	  return function (params) {
@@ -11528,8 +11501,39 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 15 */,
 /* 16 */
+/***/ function(module, exports) {
+
+	module.exports = {
+	  "image/gif": {
+	    "source": "iana",
+	    "compressible": false,
+	    "extensions": ["gif"]
+	  },
+	  "image/jpeg": {
+	    "source": "iana",
+	    "compressible": false,
+	    "extensions": ["jpeg","jpg","jpe"]
+	  },
+	  "image/png": {
+	    "source": "iana",
+	    "compressible": false,
+	    "extensions": ["png"]
+	  },
+	  "image/svg+xml": {
+	    "source": "iana",
+	    "compressible": true,
+	    "extensions": ["svg","svgz"]
+	  },
+	  "image/webp": {
+	    "source": "apache",
+	    "extensions": ["webp"]
+	  },
+	};
+
+
+/***/ },
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
@@ -11744,16 +11748,26 @@ webpackJsonp([1,0],[
 
 
 /***/ },
-/* 17 */
-/***/ function(module, exports) {
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
 
-	module.exports = function (minutes) {
-	  if(typeof minutes === 'string'){
-	    minutes = Number(minutes);
+	var firebase = __webpack_require__(2);
+	var mimes = __webpack_require__(16);
+
+	module.exports = function(file, filename, ref) {
+	  if(!ref) ref = firebase.storage().ref();
+	  if(mimes[file.type].extensions[0]) {
+
+	    // Create the file metadata
+	    var metadata = {
+	      contentType: file.type
+	    };
+
+	    // Upload file and metadata to the object
+	    var uploadTask = ref.child(filename + '.' + mimes[file.type].extensions[0]).put(file, metadata);
+
+	    return uploadTask;
 	  }
-	  var hours = parseInt( minutes/60, 10 );
-	  var mins = minutes%60;
-	  return hours+'hr '+mins+'min';
 	}
 
 
