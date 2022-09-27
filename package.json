@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/time2hack/movieDB#readme",
   "dependencies": {
-    "bootstrap": "^3.3.6",
+    "bootstrap": "^3.4.1",
     "firebase": "^3.0.5",
     "jquery": "^3.5.0"
   },
